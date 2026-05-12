@@ -83,6 +83,8 @@ pay:
   cooldown-seconds: 3
   # Dynamic limit formula parser placeholders supported:
   # {daysplayed} {kills} {deaths} {balance}
+  # Note: {daysplayed} is derived from PLAY_ONE_MINUTE ticks / 1728000.0 and clamped to at least 1.
+  # Missing/zero values are treated as 0 (except daysplayed clamp), so formulas should handle low-value players safely.
   daily-limit-formula: "1000*{daysplayed}+10000"
 
 settings:

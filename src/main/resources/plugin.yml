@@ -1,7 +1,7 @@
 name: CheeseUtils
 main: com.faboit.cheeseutils.CheeseUtilsPlugin
 version: 1.0.0
-api-version: '1.20'
+api-version: '1.21'
 authors: [Faboit1]
 description: Donut-style utility plugin bundle with combat, homes, warps, tpa, settings, daily and migration tools.
 softdepend: [PlaceholderAPI, Vault, DecentHolograms]

@@ -8,7 +8,15 @@ public final class VersionSupport {
 
     public static boolean supportsDialogs() {
         String version = Bukkit.getMinecraftVersion();
-        return compare(version, "1.21.6") >= 0;
+        if (compare(version, "1.21.6") < 0) {
+            return false;
+        }
+        try {
+            Class.forName("io.papermc.paper.dialog.Dialog");
+            return true;
+        } catch (ClassNotFoundException ignored) {
+            return false;
+        }
     }
 
     static int compare(String a, String b) {
