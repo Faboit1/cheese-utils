@@ -33,6 +33,9 @@ public interface Storage extends AutoCloseable {
 
     CompletableFuture<DailyState> getDailyState(UUID uuid);
 
+    @Override
+    void close();
+
     record DailyState(long lastClaim, int streak) { }
 
     record HomeRecord(SerializedLocation location, String icon) { }
