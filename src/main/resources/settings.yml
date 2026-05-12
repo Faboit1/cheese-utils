@@ -1,0 +1,542 @@
+# DonutSettings config by CrispStudioZ made by R2SK
+# Adapted for CheeseUtils with unlimited state support.
+
+gui-title: "<dark_gray>ꜱᴇᴛᴛɪɴɢꜱ"
+gui-size: 54
+
+settings:
+  public-chat:
+    slot: 0
+    material: OAK_SIGN
+    name: "<aqua>Public Chat"
+    default-state: enabled
+    states:
+      enabled:
+        lore:
+          - "<gray>Currently: <green><bold>ON"
+        commands:
+          - "chattoggle"
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore:
+          - "<gray>Currently: <red><bold>OFF"
+        commands:
+          - "chattoggle"
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  private-messages:
+    slot: 1
+    material: PAPER
+    name: "<aqua>Private Messages"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Accept incoming private messages"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Block incoming private messages"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  tpa-requests:
+    slot: 2
+    material: ENDER_PEARL
+    name: "<aqua>TPA Requests"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Allow /tpa requests"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Block /tpa requests"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  tpahere-requests:
+    slot: 3
+    material: ENDER_EYE
+    name: "<aqua>TPAHere Requests"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Allow /tpahere requests"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Block /tpahere requests"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  tpa-confirm-menus:
+    slot: 4
+    material: CHEST
+    name: "<aqua>TPA Confirm Menus"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Use GUI confirm menus"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Use chat buttons"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  payment-notifications:
+    slot: 5
+    material: GOLD_INGOT
+    name: "<aqua>Payment Notifications"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Show /pay receive alerts"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Hide /pay receive alerts"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  pay-block:
+    slot: 6
+    material: BARRIER
+    name: "<red>Pay Block"
+    default-state: disabled
+    states:
+      disabled:
+        lore: ["<gray>Players can pay you"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      enabled:
+        lore: ["<gray>Block all incoming payments"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  scoreboard:
+    slot: 7
+    material: BOOK
+    name: "<aqua>Scoreboard"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Scoreboard visible"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Scoreboard hidden"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  order-notifications:
+    slot: 8
+    material: BELL
+    name: "<aqua>Order Notifications"
+    default-state: high
+    states:
+      low:
+        lore: ["<gray>Minimal order notifications"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      medium:
+        lore: ["<gray>Standard order notifications"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      high:
+        lore: ["<gray>All order notifications"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  quick-auction-buy:
+    slot: 9
+    material: EMERALD
+    name: "<aqua>Quick Auction Buy"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>One-click auction buy"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Confirm before buying"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  server-messages:
+    slot: 10
+    material: PAPER
+    name: "<aqua>Server Messages"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Server Messages enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Server Messages disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  hotbar-messages:
+    slot: 11
+    material: PAPER
+    name: "<aqua>Hotbar Messages"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Hotbar Messages enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Hotbar Messages disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  pay-alerts:
+    slot: 12
+    material: REDSTONE
+    name: "<aqua>Pay Alerts"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Pay Alerts enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Pay Alerts disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  bounty-alerts:
+    slot: 13
+    material: REDSTONE
+    name: "<aqua>Bounty Alerts"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Bounty Alerts enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Bounty Alerts disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  auction-alerts:
+    slot: 14
+    material: EMERALD
+    name: "<aqua>Auction Alerts"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Auction Alerts enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Auction Alerts disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  fast-crystals:
+    slot: 15
+    material: REDSTONE
+    name: "<aqua>Fast Crystals"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Fast Crystals enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Fast Crystals disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  totem-particles:
+    slot: 16
+    material: BLAZE_POWDER
+    name: "<aqua>Totem Particles"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Totem Particles enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Totem Particles disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  explosion-particles:
+    slot: 17
+    material: BLAZE_POWDER
+    name: "<aqua>Explosion Particles"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Explosion Particles enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Explosion Particles disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  explosion-sounds:
+    slot: 18
+    material: NOTE_BLOCK
+    name: "<aqua>Explosion Sounds"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Explosion Sounds enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Explosion Sounds disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  chainmail-on-respawn:
+    slot: 19
+    material: TOTEM_OF_UNDYING
+    name: "<aqua>Chainmail On Respawn"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Chainmail On Respawn enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Chainmail On Respawn disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  disable-mob-spawns:
+    slot: 20
+    material: TOTEM_OF_UNDYING
+    name: "<aqua>Disable Mob Spawns"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Disable Mob Spawns enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Disable Mob Spawns disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  player-visibility:
+    slot: 21
+    material: GLASS
+    name: "<aqua>Player Visibility"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Player Visibility enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Player Visibility disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  sound-notifications:
+    slot: 22
+    material: NOTE_BLOCK
+    name: "<aqua>Sound Notifications"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Sound Notifications enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Sound Notifications disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  random-coords:
+    slot: 23
+    material: COMPASS
+    name: "<aqua>Random Coords"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Random Coords enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Random Coords disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  duel-requests:
+    slot: 24
+    material: ENDER_PEARL
+    name: "<aqua>Duel Requests"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Duel Requests enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Duel Requests disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  team-invites:
+    slot: 25
+    material: REDSTONE
+    name: "<aqua>Team Invites"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Team Invites enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Team Invites disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  team-chat:
+    slot: 26
+    material: BOOK
+    name: "<aqua>Team Chat"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Team Chat enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Team Chat disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  worth-display:
+    slot: 27
+    material: REDSTONE
+    name: "<aqua>Worth Display"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Worth Display enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Worth Display disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  after-duel-songs:
+    slot: 28
+    material: REDSTONE
+    name: "<aqua>After Duel Songs"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>After Duel Songs enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>After Duel Songs disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  quiet-spawn:
+    slot: 29
+    material: TOTEM_OF_UNDYING
+    name: "<aqua>Quiet Spawn"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Quiet Spawn enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Quiet Spawn disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+
+  tpa-auto-accept:
+    slot: 30
+    material: REDSTONE
+    name: "<aqua>Tpa Auto Accept"
+    default-state: enabled
+    states:
+      enabled:
+        lore: ["<gray>Tpa Auto Accept enabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
+      disabled:
+        lore: ["<gray>Tpa Auto Accept disabled"]
+        commands: []
+        executor: player
+        sound: UI_BUTTON_CLICK
