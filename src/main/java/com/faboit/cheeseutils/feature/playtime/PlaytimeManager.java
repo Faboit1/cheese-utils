@@ -19,8 +19,18 @@ public final class PlaytimeManager implements Listener {
 
     /** Cached playtime data per player (loaded on join, updated on quit). */
     private final Map<UUID, Storage.PlaytimeRecord> cache = new ConcurrentHashMap<>();
-    /** Session start timestamp in milliseconds. */
+    /**
+     * Session start timestamp in milliseconds. Set on join, removed on quit.
+     * Used by flushAll and finalizeSession to calculate elapsed session time.
+     */
     private final Map<UUID, Long> sessionStart = new ConcurrentHashMap<>();
+    /**
+     * Join timestamp stored separately from sessionStart.
+     * Allows the async thenAccept callback to calculate the full session time
+     * even if the player quit before the DB load completed (in which case
+     * sessionStart would already have been removed by finalizeSession).
+     */
+    private final Map<UUID, Long> joinTimestamp = new ConcurrentHashMap<>();
 
     public PlaytimeManager(JavaPlugin plugin, Storage storage) {
         this.plugin = plugin;
@@ -35,15 +45,26 @@ public final class PlaytimeManager implements Listener {
         UUID uuid = player.getUniqueId();
         long now = System.currentTimeMillis();
         sessionStart.put(uuid, now);
+        joinTimestamp.put(uuid, now);
+
         storage.getPlaytime(uuid).thenAccept(record -> {
-            if (record == null) {
-                cache.put(uuid, new Storage.PlaytimeRecord(player.getName(), 0L, 0));
-            } else {
-                cache.put(uuid, record);
+            long baseTime = record != null ? record.timeSeconds() : 0L;
+            int baseJoins = record != null ? record.joins() : 0;
+            int newJoins = baseJoins + 1;
+            String name = player.getName();
+
+            // Determine if the player already quit before this callback ran
+            boolean alreadyLeft = !sessionStart.containsKey(uuid);
+            long sessionSeconds = 0L;
+            if (alreadyLeft) {
+                // Player quit during async load; compute elapsed from joinTimestamp so session is not lost
+                Long jt = joinTimestamp.remove(uuid);
+                if (jt != null) {
+                    sessionSeconds = (System.currentTimeMillis() - jt) / 1000L;
+                }
             }
-            // Update join count immediately
-            Storage.PlaytimeRecord existing = cache.get(uuid);
-            Storage.PlaytimeRecord updated = new Storage.PlaytimeRecord(player.getName(), existing.timeSeconds(), existing.joins() + 1);
+
+            Storage.PlaytimeRecord updated = new Storage.PlaytimeRecord(name, baseTime + sessionSeconds, newJoins);
             cache.put(uuid, updated);
             storage.savePlaytime(uuid, updated.playerName(), updated.timeSeconds(), updated.joins());
         });
@@ -64,12 +85,14 @@ public final class PlaytimeManager implements Listener {
     private void finalizeSession(Player player) {
         UUID uuid = player.getUniqueId();
         Long start = sessionStart.remove(uuid);
+        joinTimestamp.remove(uuid);
         if (start == null) {
+            // Session start not yet set — thenAccept will handle session time via joinTimestamp
             return;
         }
         long sessionSeconds = (System.currentTimeMillis() - start) / 1000L;
         Storage.PlaytimeRecord existing = cache.getOrDefault(uuid, new Storage.PlaytimeRecord(player.getName(), 0L, 0));
-        Storage.PlaytimeRecord updated = new Storage.PlaytimeRecord(player.getName(), existing.timeSeconds() + sessionSeconds, existing.joins());
+        Storage.PlaytimeRecord updated = new Storage.PlaytimeRecord(existing.playerName(), existing.timeSeconds() + sessionSeconds, existing.joins());
         cache.put(uuid, updated);
         storage.savePlaytime(uuid, updated.playerName(), updated.timeSeconds(), updated.joins());
     }
@@ -83,7 +106,6 @@ public final class PlaytimeManager implements Listener {
             }
             long sessionSeconds = (System.currentTimeMillis() - start) / 1000L;
             Storage.PlaytimeRecord existing = cache.getOrDefault(uuid, new Storage.PlaytimeRecord(player.getName(), 0L, 0));
-            // Update cache with current session but don't reset the session start
             long total = existing.timeSeconds() + sessionSeconds;
             Storage.PlaytimeRecord updated = new Storage.PlaytimeRecord(player.getName(), total, existing.joins());
             cache.put(uuid, updated);
@@ -114,7 +136,7 @@ public final class PlaytimeManager implements Listener {
         return record != null ? record.playerName() : uuid.toString();
     }
 
-    /** Format seconds into a human-friendly string: Xd Xh Xm Xs */
+    /** Format seconds into a human-friendly string: Xw Xd Xh Xm Xs */
     public static String formatTime(long seconds) {
         long weeks = seconds / (7 * 24 * 3600);
         seconds %= 7 * 24 * 3600;
