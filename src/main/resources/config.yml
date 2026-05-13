@@ -1,0 +1,92 @@
+# CheeseUtils core configuration
+# Every section can be tuned without code changes.
+
+database:
+  # sqlite (default) or mysql
+  mode: sqlite
+  # MySQL host
+  host: 127.0.0.1
+  # MySQL port
+  port: 3306
+  # MySQL database name
+  name: cheeseutils
+  # MySQL username
+  user: root
+  # MySQL password
+  password: password
+
+combat:
+  # Combat tag duration after player-vs-player hit
+  timer-seconds: 15
+  # Worlds where combat system is disabled
+  disabled-worlds: []
+  # Prevent teleports while in combat
+  prevent-teleport: true
+  # Prevent non-survival gamemode switching while in combat
+  prevent-gamemode: true
+  # Commands blocked while in combat
+  blocked-commands:
+    - spawn
+    - home
+    - warp
+  # Punishment: death | none
+  logout-punishment: death
+
+tpa:
+  # TPA request expiration window
+  expiration-seconds: 30
+  # TPA request cooldown for sender
+  cooldown-seconds: 3
+  # Teleport warmup after acceptance
+  warmup-seconds: 3
+  # Cancel teleport warmup if sender moves
+  cancel-on-move: true
+  # Block /tpa request while sender is in combat
+  block-in-combat: true
+
+spawn:
+  # Spawn command warmup
+  warmup-seconds: 2
+  # Cancel warmup on movement
+  cancel-on-move: true
+  # Teleport first join players to spawn
+  first-join-teleport: true
+  # Teleport all players to spawn on join
+  teleport-on-join: false
+
+homes:
+  # Default max homes if no permission node matches
+  default-max: 3
+  # Warmup before teleporting home
+  warmup-seconds: 3
+  # Cancel home warmup on movement
+  cancel-on-move: true
+
+warp:
+  # Base cooldown for /warp usage in seconds (hook-ready)
+  cooldown-seconds: 0
+
+daily:
+  # Daily reward cooldown in hours
+  cooldown-hours: 24
+  rewards:
+    # Console commands run when reward is claimed
+    commands:
+      - "give {player} diamond 1"
+
+pay:
+  # Minimum transfer amount
+  minimum: 1.0
+  # Tax percent applied to receiver amount
+  tax-percent: 0.0
+  # Sender pay cooldown in seconds
+  cooldown-seconds: 3
+  # Dynamic limit formula parser placeholders supported:
+  # {daysplayed} {kills} {deaths} {balance}
+  # Note: {daysplayed} is derived from PLAY_ONE_MINUTE ticks / 1728000.0 and clamped to at least 1.
+  # Missing/zero values are treated as 0 (except daysplayed clamp), so formulas should handle low-value players safely.
+  daily-limit-formula: "1000*{daysplayed}+10000"
+
+settings:
+  # Force inventory-based settings GUI even on 1.21.6+ servers.
+  force-chest-gui-on-modern: false
