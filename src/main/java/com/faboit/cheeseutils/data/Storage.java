@@ -33,6 +33,10 @@ public interface Storage extends AutoCloseable {
 
     CompletableFuture<DailyState> getDailyState(UUID uuid);
 
+    CompletableFuture<PlaytimeRecord> getPlaytime(UUID uuid);
+
+    CompletableFuture<Void> savePlaytime(UUID uuid, String playerName, long timeSeconds, int joins);
+
     @Override
     void close();
 
@@ -41,4 +45,6 @@ public interface Storage extends AutoCloseable {
     record HomeRecord(SerializedLocation location, String icon) { }
 
     record WarpRecord(SerializedLocation location, String category, String permission, boolean hidden, boolean adminOnly) { }
+
+    record PlaytimeRecord(String playerName, long timeSeconds, int joins) { }
 }

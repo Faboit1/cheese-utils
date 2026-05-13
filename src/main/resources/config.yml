@@ -2,7 +2,7 @@
 # Every section can be tuned without code changes.
 
 database:
-  # sqlite (default) or mysql
+  # sqlite (default), mysql, or mariadb
   mode: sqlite
   # MySQL host
   host: 127.0.0.1

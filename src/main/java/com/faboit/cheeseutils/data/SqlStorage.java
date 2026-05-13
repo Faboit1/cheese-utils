@@ -8,11 +8,13 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public final class SqlStorage implements Storage {
     public record DatabaseSettings(String mode, String host, int port, String database, String user, String password) {
@@ -31,62 +33,152 @@ public final class SqlStorage implements Storage {
         this.settings = settings;
     }
 
+    private boolean isMysqlLike() {
+        String mode = settings.mode();
+        return "mysql".equalsIgnoreCase(mode) || "mariadb".equalsIgnoreCase(mode);
+    }
+
+    /** Returns "ON CONFLICT(<conflictCols>) DO UPDATE SET col=excluded.col, ..." for SQLite
+     *  or "ON DUPLICATE KEY UPDATE col=VALUES(col), ..." for MySQL/MariaDB. */
+    private String upsertSuffix(String conflictCols, String... updateCols) {
+        if (isMysqlLike()) {
+            return " ON DUPLICATE KEY UPDATE " + Arrays.stream(updateCols)
+                    .map(c -> c + "=VALUES(" + c + ")")
+                    .collect(Collectors.joining(", "));
+        }
+        return " ON CONFLICT(" + conflictCols + ") DO UPDATE SET " +
+                Arrays.stream(updateCols)
+                        .map(c -> c + "=excluded." + c)
+                        .collect(Collectors.joining(", "));
+    }
+
     @Override
     public CompletableFuture<Void> initialize() {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = open()) {
-                migrationManager.run(connection);
+                if (isMysqlLike()) {
+                    migrationManager.runMysql(connection);
+                } else {
+                    migrationManager.run(connection);
+                }
                 try (Statement statement = connection.createStatement()) {
-                    statement.executeUpdate("""
-                            CREATE TABLE IF NOT EXISTS player_settings (
-                            uuid TEXT NOT NULL,
-                            setting_key TEXT NOT NULL,
-                            state_key TEXT NOT NULL,
-                            PRIMARY KEY(uuid, setting_key))
-                            """);
-                    statement.executeUpdate("""
-                            CREATE TABLE IF NOT EXISTS homes (
-                            uuid TEXT NOT NULL,
-                            home_name TEXT NOT NULL,
-                            world TEXT NOT NULL,
-                            x REAL NOT NULL,
-                            y REAL NOT NULL,
-                            z REAL NOT NULL,
-                            yaw REAL NOT NULL,
-                            pitch REAL NOT NULL,
-                            icon TEXT NOT NULL,
-                            PRIMARY KEY(uuid, home_name))
-                            """);
-                    statement.executeUpdate("""
-                            CREATE TABLE IF NOT EXISTS warps (
-                            warp_name TEXT PRIMARY KEY,
-                            world TEXT NOT NULL,
-                            x REAL NOT NULL,
-                            y REAL NOT NULL,
-                            z REAL NOT NULL,
-                            yaw REAL NOT NULL,
-                            pitch REAL NOT NULL,
-                            category TEXT NOT NULL,
-                            permission TEXT NOT NULL,
-                            hidden INTEGER NOT NULL,
-                            admin_only INTEGER NOT NULL)
-                            """);
-                    statement.executeUpdate("""
-                            CREATE TABLE IF NOT EXISTS spawn_point (
-                            id INTEGER PRIMARY KEY CHECK(id=1),
-                            world TEXT NOT NULL,
-                            x REAL NOT NULL,
-                            y REAL NOT NULL,
-                            z REAL NOT NULL,
-                            yaw REAL NOT NULL,
-                            pitch REAL NOT NULL)
-                            """);
-                    statement.executeUpdate("""
-                            CREATE TABLE IF NOT EXISTS daily_claims (
-                            uuid TEXT PRIMARY KEY,
-                            last_claim INTEGER NOT NULL,
-                            streak INTEGER NOT NULL)
-                            """);
+                    if (isMysqlLike()) {
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS player_settings (
+                                uuid VARCHAR(36) NOT NULL,
+                                setting_key VARCHAR(64) NOT NULL,
+                                state_key VARCHAR(64) NOT NULL,
+                                PRIMARY KEY(uuid, setting_key))
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS homes (
+                                uuid VARCHAR(36) NOT NULL,
+                                home_name VARCHAR(64) NOT NULL,
+                                world VARCHAR(64) NOT NULL,
+                                x DOUBLE NOT NULL,
+                                y DOUBLE NOT NULL,
+                                z DOUBLE NOT NULL,
+                                yaw FLOAT NOT NULL,
+                                pitch FLOAT NOT NULL,
+                                icon VARCHAR(64) NOT NULL,
+                                PRIMARY KEY(uuid, home_name))
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS warps (
+                                warp_name VARCHAR(64) NOT NULL PRIMARY KEY,
+                                world VARCHAR(64) NOT NULL,
+                                x DOUBLE NOT NULL,
+                                y DOUBLE NOT NULL,
+                                z DOUBLE NOT NULL,
+                                yaw FLOAT NOT NULL,
+                                pitch FLOAT NOT NULL,
+                                category VARCHAR(64) NOT NULL,
+                                permission VARCHAR(128) NOT NULL,
+                                hidden TINYINT NOT NULL,
+                                admin_only TINYINT NOT NULL)
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS spawn_point (
+                                id INT PRIMARY KEY,
+                                world VARCHAR(64) NOT NULL,
+                                x DOUBLE NOT NULL,
+                                y DOUBLE NOT NULL,
+                                z DOUBLE NOT NULL,
+                                yaw FLOAT NOT NULL,
+                                pitch FLOAT NOT NULL)
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS daily_claims (
+                                uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+                                last_claim BIGINT NOT NULL,
+                                streak INT NOT NULL)
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS playtime (
+                                uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+                                player_name VARCHAR(16) NOT NULL,
+                                time_seconds BIGINT NOT NULL DEFAULT 0,
+                                joins INT NOT NULL DEFAULT 0)
+                                """);
+                    } else {
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS player_settings (
+                                uuid TEXT NOT NULL,
+                                setting_key TEXT NOT NULL,
+                                state_key TEXT NOT NULL,
+                                PRIMARY KEY(uuid, setting_key))
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS homes (
+                                uuid TEXT NOT NULL,
+                                home_name TEXT NOT NULL,
+                                world TEXT NOT NULL,
+                                x REAL NOT NULL,
+                                y REAL NOT NULL,
+                                z REAL NOT NULL,
+                                yaw REAL NOT NULL,
+                                pitch REAL NOT NULL,
+                                icon TEXT NOT NULL,
+                                PRIMARY KEY(uuid, home_name))
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS warps (
+                                warp_name TEXT PRIMARY KEY,
+                                world TEXT NOT NULL,
+                                x REAL NOT NULL,
+                                y REAL NOT NULL,
+                                z REAL NOT NULL,
+                                yaw REAL NOT NULL,
+                                pitch REAL NOT NULL,
+                                category TEXT NOT NULL,
+                                permission TEXT NOT NULL,
+                                hidden INTEGER NOT NULL,
+                                admin_only INTEGER NOT NULL)
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS spawn_point (
+                                id INTEGER PRIMARY KEY CHECK(id=1),
+                                world TEXT NOT NULL,
+                                x REAL NOT NULL,
+                                y REAL NOT NULL,
+                                z REAL NOT NULL,
+                                yaw REAL NOT NULL,
+                                pitch REAL NOT NULL)
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS daily_claims (
+                                uuid TEXT PRIMARY KEY,
+                                last_claim INTEGER NOT NULL,
+                                streak INTEGER NOT NULL)
+                                """);
+                        statement.executeUpdate("""
+                                CREATE TABLE IF NOT EXISTS playtime (
+                                uuid TEXT NOT NULL PRIMARY KEY,
+                                player_name TEXT NOT NULL,
+                                time_seconds INTEGER NOT NULL DEFAULT 0,
+                                joins INTEGER NOT NULL DEFAULT 0)
+                                """);
+                    }
                 }
             } catch (Exception exception) {
                 throw new IllegalStateException("Failed to initialize database", exception);
@@ -98,6 +190,10 @@ public final class SqlStorage implements Storage {
     private Connection open() throws Exception {
         if ("mysql".equalsIgnoreCase(settings.mode())) {
             String url = "jdbc:mysql://" + settings.host() + ":" + settings.port() + "/" + settings.database() + "?useSSL=false&allowPublicKeyRetrieval=true";
+            return DriverManager.getConnection(url, settings.user(), settings.password());
+        }
+        if ("mariadb".equalsIgnoreCase(settings.mode())) {
+            String url = "jdbc:mariadb://" + settings.host() + ":" + settings.port() + "/" + settings.database();
             return DriverManager.getConnection(url, settings.user(), settings.password());
         }
         if (!dataFolder.exists() && !dataFolder.mkdirs()) {
@@ -153,13 +249,10 @@ public final class SqlStorage implements Storage {
     @Override
     public CompletableFuture<Void> saveHome(UUID uuid, String homeName, SerializedLocation location, String icon) {
         return CompletableFuture.runAsync(() -> {
+            String sql = "INSERT INTO homes(uuid, home_name, world, x, y, z, yaw, pitch, icon) VALUES(?,?,?,?,?,?,?,?,?)" +
+                    upsertSuffix("uuid, home_name", "world", "x", "y", "z", "yaw", "pitch", "icon");
             try (Connection connection = open();
-                 PreparedStatement statement = connection.prepareStatement("""
-                         INSERT INTO homes(uuid, home_name, world, x, y, z, yaw, pitch, icon)
-                         VALUES(?,?,?,?,?,?,?,?,?)
-                         ON CONFLICT(uuid, home_name) DO UPDATE SET
-                         world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z,
-                         yaw=excluded.yaw, pitch=excluded.pitch, icon=excluded.icon""")) {
+                 PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, uuid.toString());
                 statement.setString(2, homeName.toLowerCase());
                 statement.setString(3, location.world());
@@ -213,14 +306,10 @@ public final class SqlStorage implements Storage {
     @Override
     public CompletableFuture<Void> saveWarp(String warpName, SerializedLocation location, String category, String permission, boolean hidden, boolean adminOnly) {
         return CompletableFuture.runAsync(() -> {
+            String sql = "INSERT INTO warps(warp_name, world, x, y, z, yaw, pitch, category, permission, hidden, admin_only) VALUES(?,?,?,?,?,?,?,?,?,?,?)" +
+                    upsertSuffix("warp_name", "world", "x", "y", "z", "yaw", "pitch", "category", "permission", "hidden", "admin_only");
             try (Connection connection = open();
-                 PreparedStatement statement = connection.prepareStatement("""
-                         INSERT INTO warps(warp_name, world, x, y, z, yaw, pitch, category, permission, hidden, admin_only)
-                         VALUES(?,?,?,?,?,?,?,?,?,?,?)
-                         ON CONFLICT(warp_name) DO UPDATE SET
-                         world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z,
-                         yaw=excluded.yaw, pitch=excluded.pitch, category=excluded.category,
-                         permission=excluded.permission, hidden=excluded.hidden, admin_only=excluded.admin_only""")) {
+                 PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, warpName.toLowerCase());
                 statement.setString(2, location.world());
                 statement.setDouble(3, location.x());
@@ -274,12 +363,10 @@ public final class SqlStorage implements Storage {
     @Override
     public CompletableFuture<Void> saveSpawn(SerializedLocation location) {
         return CompletableFuture.runAsync(() -> {
+            String sql = "INSERT INTO spawn_point(id, world, x, y, z, yaw, pitch) VALUES(1,?,?,?,?,?,?)" +
+                    upsertSuffix("id", "world", "x", "y", "z", "yaw", "pitch");
             try (Connection connection = open();
-                 PreparedStatement statement = connection.prepareStatement("""
-                         INSERT INTO spawn_point(id, world, x, y, z, yaw, pitch)
-                         VALUES(1,?,?,?,?,?,?)
-                         ON CONFLICT(id) DO UPDATE SET world=excluded.world, x=excluded.x,
-                         y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch""")) {
+                 PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, location.world());
                 statement.setDouble(2, location.x());
                 statement.setDouble(3, location.y());
@@ -328,11 +415,10 @@ public final class SqlStorage implements Storage {
     @Override
     public CompletableFuture<Void> setDailyLastClaim(UUID uuid, long epochMillis, int streak) {
         return CompletableFuture.runAsync(() -> {
+            String sql = "INSERT INTO daily_claims(uuid, last_claim, streak) VALUES(?,?,?)" +
+                    upsertSuffix("uuid", "last_claim", "streak");
             try (Connection connection = open();
-                 PreparedStatement statement = connection.prepareStatement("""
-                         INSERT INTO daily_claims(uuid, last_claim, streak)
-                         VALUES(?,?,?)
-                         ON CONFLICT(uuid) DO UPDATE SET last_claim=excluded.last_claim, streak=excluded.streak""")) {
+                 PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, uuid.toString());
                 statement.setLong(2, epochMillis);
                 statement.setInt(3, streak);
@@ -357,6 +443,42 @@ public final class SqlStorage implements Storage {
                 }
             } catch (Exception exception) {
                 throw new IllegalStateException("Failed to get daily state", exception);
+            }
+        }, executor.io());
+    }
+
+    @Override
+    public CompletableFuture<PlaytimeRecord> getPlaytime(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection connection = open();
+                 PreparedStatement statement = connection.prepareStatement("SELECT player_name, time_seconds, joins FROM playtime WHERE uuid=?")) {
+                statement.setString(1, uuid.toString());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return new PlaytimeRecord(resultSet.getString(1), resultSet.getLong(2), resultSet.getInt(3));
+                    }
+                    return null;
+                }
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to get playtime", exception);
+            }
+        }, executor.io());
+    }
+
+    @Override
+    public CompletableFuture<Void> savePlaytime(UUID uuid, String playerName, long timeSeconds, int joins) {
+        return CompletableFuture.runAsync(() -> {
+            String sql = "INSERT INTO playtime(uuid, player_name, time_seconds, joins) VALUES(?,?,?,?)" +
+                    upsertSuffix("uuid", "player_name", "time_seconds", "joins");
+            try (Connection connection = open();
+                 PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setString(1, uuid.toString());
+                statement.setString(2, playerName);
+                statement.setLong(3, timeSeconds);
+                statement.setInt(4, joins);
+                statement.executeUpdate();
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to save playtime", exception);
             }
         }, executor.io());
     }

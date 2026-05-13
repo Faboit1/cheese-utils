@@ -73,3 +73,9 @@ migrate.done: "<green>Migration completed. Homes handled: <yellow>{count}</yello
 settings.saved: "<green>Settings saved."
 settings.save-failed: "<red>Failed to save settings."
 settings.dialog-fallback-info: "<yellow>Dialog API mode is enabled for this server version; using chest UX fallback for stable behavior."
+
+cheeseutils.migrate.done: "<green>Migration from <yellow>{source}</yellow> complete. Records imported: <yellow>{count}</yellow>."
+cheeseutils.migrate.playtime-not-found: "<red>PlayTime data not found at plugins/PlayTime/userdata.json"
+cheeseutils.migrate.playtimepulse-not-found: "<red>PlaytimePulse data not found at plugins/PlaytimePulse/playtime.yml"
+cheeseutils.migrate.empty: "<yellow>No player data found to migrate."
+cheeseutils.migrate.error: "<red>An error occurred while reading the source data. Check console for details."

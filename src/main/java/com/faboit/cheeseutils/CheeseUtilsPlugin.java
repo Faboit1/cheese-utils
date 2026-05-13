@@ -1,6 +1,7 @@
 package com.faboit.cheeseutils;
 
 import com.faboit.cheeseutils.api.CheeseUtilsApi;
+import com.faboit.cheeseutils.api.hook.PlaytimeExpansion;
 import com.faboit.cheeseutils.bootstrap.ServiceRegistry;
 import com.faboit.cheeseutils.command.*;
 import com.faboit.cheeseutils.config.ConfigService;
@@ -9,9 +10,11 @@ import com.faboit.cheeseutils.data.Storage;
 import com.faboit.cheeseutils.feature.combat.CombatManager;
 import com.faboit.cheeseutils.feature.daily.DailyManager;
 import com.faboit.cheeseutils.feature.home.HomeManager;
+import com.faboit.cheeseutils.feature.migration.PlaytimeMigrationManager;
 import com.faboit.cheeseutils.feature.migration.UltimateHomesMigrationManager;
 import com.faboit.cheeseutils.feature.pay.FormulaEngine;
 import com.faboit.cheeseutils.feature.pay.PayManager;
+import com.faboit.cheeseutils.feature.playtime.PlaytimeManager;
 import com.faboit.cheeseutils.feature.settings.SettingsManager;
 import com.faboit.cheeseutils.feature.spawn.SpawnManager;
 import com.faboit.cheeseutils.feature.tpa.TpaManager;
@@ -26,8 +29,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.Map;
 
 public final class CheeseUtilsPlugin extends JavaPlugin implements Listener {
     private final ServiceRegistry services = new ServiceRegistry();
@@ -60,6 +61,9 @@ public final class CheeseUtilsPlugin extends JavaPlugin implements Listener {
         DailyManager dailyManager = new DailyManager(this, configService, storage);
         PayManager payManager = new PayManager(configService, settingsManager, new FormulaEngine());
         UltimateHomesMigrationManager migrationManager = new UltimateHomesMigrationManager(getDataFolder(), storage, configService, getLogger());
+        PlaytimeManager playtimeManager = new PlaytimeManager(this, storage);
+        PlaytimeMigrationManager playtimeMigrationManager = new PlaytimeMigrationManager(
+                getDataFolder().getParentFile(), storage, configService, getLogger());
 
         warpManager.load().join();
         spawnManager.load();
@@ -74,12 +78,20 @@ public final class CheeseUtilsPlugin extends JavaPlugin implements Listener {
         services.register(SpawnManager.class, spawnManager);
         services.register(DailyManager.class, dailyManager);
         services.register(PayManager.class, payManager);
+        services.register(PlaytimeManager.class, playtimeManager);
 
-        registerCommands(configService, combatManager, tpaManager, settingsManager, spawnManager, warpManager, homeManager, migrationManager, dailyManager, payManager);
+        registerCommands(configService, combatManager, tpaManager, settingsManager, spawnManager, warpManager,
+                homeManager, migrationManager, dailyManager, payManager, playtimeMigrationManager);
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(combatManager, this);
         Bukkit.getPluginManager().registerEvents(settingsManager, this);
+        Bukkit.getPluginManager().registerEvents(playtimeManager, this);
         combatManager.startTicker();
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PlaytimeExpansion(playtimeManager).register();
+            getLogger().info("PlaceholderAPI hooked – playtime placeholders registered.");
+        }
 
         ServicesManager servicesManager = Bukkit.getServicesManager();
         servicesManager.register(CheeseUtilsApi.class, new CheeseUtilsApiImpl(combatManager, settingsManager), this, org.bukkit.plugin.ServicePriority.Normal);
@@ -95,7 +107,8 @@ public final class CheeseUtilsPlugin extends JavaPlugin implements Listener {
                                   HomeManager homeManager,
                                   UltimateHomesMigrationManager migrationManager,
                                   DailyManager dailyManager,
-                                  PayManager payManager) {
+                                  PayManager payManager,
+                                  PlaytimeMigrationManager playtimeMigrationManager) {
         register("combatstatus", new CombatCommand(combatManager, configService, configService::reload));
         register("combatreload", new CombatCommand(combatManager, configService, configService::reload));
 
@@ -126,6 +139,13 @@ public final class CheeseUtilsPlugin extends JavaPlugin implements Listener {
         }
 
         register("settings", new SettingsCommand(settingsManager));
+
+        CheeseUtilsCommand cheeseUtilsCommand = new CheeseUtilsCommand(configService, playtimeMigrationManager, migrationManager);
+        PluginCommand cu = getCommand("cheeseutils");
+        if (cu != null) {
+            cu.setExecutor(cheeseUtilsCommand);
+            cu.setTabCompleter(cheeseUtilsCommand);
+        }
     }
 
     private void register(String name, org.bukkit.command.CommandExecutor executor) {
@@ -155,6 +175,12 @@ public final class CheeseUtilsPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        try {
+            PlaytimeManager playtimeManager = services.get(PlaytimeManager.class);
+            playtimeManager.onDisable();
+        } catch (IllegalStateException ignored) {
+            // PlaytimeManager not registered if onEnable failed early
+        }
         Storage storage = services.get(Storage.class);
         storage.close();
         if (asyncExecutor != null) {
