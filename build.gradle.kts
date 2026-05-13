@@ -5,6 +5,7 @@ plugins {
 
 group = "com.faboit"
 version = "1.0.0"
+base.archivesName.set("CheeseUtils")
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
