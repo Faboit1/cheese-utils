@@ -60,6 +60,8 @@ commands:
     usage: /homes
   settings:
     usage: /settings
+  cheeseutils:
+    usage: /cheeseutils [help|migrate]
 permissions:
   cheeseutils.admin:
     description: Grants all CheeseUtils permissions.
@@ -71,6 +73,7 @@ permissions:
       cheeseutils.warp.admin: true
       cheeseutils.pay.bypasslimit: true
       cheeseutils.homes.max.100: true
+      cheeseutils.migrate: true
   cheeseutils.combat.bypass:
     default: false
   cheeseutils.combat.reload:
@@ -81,3 +84,5 @@ permissions:
     default: op
   cheeseutils.pay.bypasslimit:
     default: false
+  cheeseutils.migrate:
+    default: op
